@@ -4,13 +4,15 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.project.vacationplanner.ui.screens.HomeEmployerScreen
+import com.project.vacationplanner.ui.screens.LoginScreen
+import com.project.vacationplanner.ui.screens.ProfileScreen
+import com.project.vacationplanner.ui.screens.RoleSelectionScreen
+import com.project.vacationplanner.ui.screens.StatisticsScreen
 import com.project.vacationplanner.ui.theme.VacationPlannerTheme
 
 class MainActivity : ComponentActivity() {
@@ -19,12 +21,12 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             VacationPlannerTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                //  LoginScreen()
+                // RegisterScreen()
+                // RoleSelectionScreen()
+//                 ProfileScreen()
+//                HomeEmployerScreen();
+//                StatisticsScreen();
             }
         }
     }
