@@ -113,7 +113,7 @@ fun LoginScreen(
         Spacer(Modifier.height(32.dp))
 
         VpPrimaryButton(
-            text    = "Войти",
+            text = "Войти",
             onClick = { onLoginClick(email, password, companyCode) },
         )
 

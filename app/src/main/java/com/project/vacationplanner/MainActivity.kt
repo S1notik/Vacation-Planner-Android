@@ -8,6 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.project.vacationplanner.ui.screens.HomeEmployeeScreen
 import com.project.vacationplanner.ui.screens.HomeEmployerScreen
 import com.project.vacationplanner.ui.screens.LoginScreen
 import com.project.vacationplanner.ui.screens.ProfileScreen
@@ -27,6 +28,7 @@ class MainActivity : ComponentActivity() {
 //                 ProfileScreen()
 //                HomeEmployerScreen();
 //                StatisticsScreen();
+                HomeEmployeeScreen();
             }
         }
     }
