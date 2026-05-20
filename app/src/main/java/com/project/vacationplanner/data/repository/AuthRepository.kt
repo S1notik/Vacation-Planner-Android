@@ -18,7 +18,8 @@ class AuthRepository(private val context: Context) {
         role: String
     ): Result<AuthResponse> = runCatching {
         val response = api.register(RegisterRequest(email, password, name, role))
-        TokenManager.saveTokens(context, response.accessToken, response.refreshToken, response.role)
+        TokenManager.saveTokens(context, response.accessToken, response.refreshToken, response.role,
+            name, email)
         response
     }
 
@@ -26,7 +27,8 @@ class AuthRepository(private val context: Context) {
         // Очищаем старый токен перед логином
         TokenManager.clearTokens(context)
         val response = api.login(LoginRequest(email, password))
-        TokenManager.saveTokens(context, response.accessToken, response.refreshToken, response.role)
+        TokenManager.saveTokens(context, response.accessToken, response.refreshToken, response.role,
+            response.name, email = email)
         response
     }
 

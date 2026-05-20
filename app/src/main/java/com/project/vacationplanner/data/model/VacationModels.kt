@@ -18,7 +18,8 @@ data class VacationResponse(
     val daysCount: Int,
     val status: String,
     val comment: String?,
-    val createdAt: String
+    val createdAt: String,
+    val employeeName: String? = null
 )
 
 data class VacationBalanceResponse(

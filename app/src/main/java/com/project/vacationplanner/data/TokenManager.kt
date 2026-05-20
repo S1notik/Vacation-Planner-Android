@@ -17,17 +17,28 @@ object TokenManager {
     private val REFRESH_TOKEN = stringPreferencesKey("refresh_token")
     private val USER_ROLE = stringPreferencesKey("user_role")
 
+    private val USER_NAME = stringPreferencesKey("user_name")
+
+    private val USER_EMAIL = stringPreferencesKey("user_email")
+
+    private val USER_POSITION = stringPreferencesKey("user_position")
+
+
     // Save tokens after login/register
     suspend fun saveTokens(
         context: Context,
         accessToken: String,
         refreshToken: String,
-        role: String
+        role: String,
+        name: String = "",
+        email: String = ""
     ) {
         context.dataStore.edit { prefs ->
             prefs[ACCESS_TOKEN] = accessToken
             prefs[REFRESH_TOKEN] = refreshToken
             prefs[USER_ROLE] = role
+            prefs[USER_NAME] = name
+            prefs[USER_EMAIL] = email
         }
     }
 
@@ -61,4 +72,25 @@ object TokenManager {
     suspend fun isLoggedIn(context: Context): Boolean {
         return getAccessToken(context) != null
     }
+
+    suspend fun getName(context: Context): String? {
+        return context.dataStore.data
+            .map { it[USER_NAME] }
+            .first()
+    }
+
+    suspend fun getEmail(context: Context): String? {
+        return context.dataStore.data
+            .map { it[USER_EMAIL] }
+            .first()
+    }
+
+    suspend fun savePosition(context: Context, position: String) {
+        context.dataStore.edit { it[USER_POSITION] = position }
+    }
+
+    suspend fun getPosition(context: Context): String? {
+        return context.dataStore.data.map { it[USER_POSITION] }.first()
+    }
+
 }

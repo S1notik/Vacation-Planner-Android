@@ -88,11 +88,6 @@ fun ProfileScreen(
                 onClick = onEditClick,
             )
             Spacer(Modifier.height(10.dp))
-            ProfileActionRow(
-                icon = Icons.Outlined.Refresh,
-                label = "Переключить роль",
-                onClick = onSwitchRoleClick,
-            )
 
             ProfileActionRow(
                 icon = Icons.Outlined.Logout,
@@ -109,11 +104,7 @@ fun ProfileScreen(
             ) {
                 ProfileInfoRow(label = "Email", value = email)
                 ProfileDivider()
-                ProfileInfoRow(label = "Телефон", value = phone)
-                ProfileDivider()
-                ProfileInfoRow(label = "Отдел", value = department)
-                ProfileDivider()
-                ProfileInfoRow(label = "Должность", value = position)
+                ProfileInfoRow(label = "Роль", value = if (position == "EMPLOYER") "Работодатель" else "Сотрудник")
             }
             Spacer(Modifier.height(32.dp))
         }
