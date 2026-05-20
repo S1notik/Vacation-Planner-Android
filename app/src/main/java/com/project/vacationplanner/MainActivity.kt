@@ -8,6 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.project.vacationplanner.ui.navigation.AppNavigation
 import com.project.vacationplanner.ui.screens.HomeEmployeeScreen
 import com.project.vacationplanner.ui.screens.HomeEmployerScreen
 import com.project.vacationplanner.ui.screens.LoginScreen
@@ -22,13 +23,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             VacationPlannerTheme {
-                //  LoginScreen()
-                // RegisterScreen()
-                // RoleSelectionScreen()
-//                 ProfileScreen()
-//                HomeEmployerScreen();
-//                StatisticsScreen();
-                HomeEmployeeScreen();
+                AppNavigation()
             }
         }
     }

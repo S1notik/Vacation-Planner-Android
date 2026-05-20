@@ -36,6 +36,7 @@ private val employeeOverlapDays = emptySet<Int>()
 
 @Composable
 fun HomeEmployeeScreen(
+    initialTab: Int = 0,
     stats: EmployeeVacationStats = EmployeeVacationStats(),
     requests: List<MyVacationRequestUi> = emptyList(),
     userName: String = "",
@@ -45,7 +46,7 @@ fun HomeEmployeeScreen(
     onCancelRequest: (String) -> Unit = {},
     onSubmitRequest: (startDate: String, endDate: String) -> Unit = { _, _ -> },
 ) {
-    var selectedTab by remember { mutableIntStateOf(0) }
+    var selectedTab by remember { mutableIntStateOf(initialTab) }
     var showNewRequest  by remember { mutableStateOf(false) }
     val tabs = listOf("Календарь", "Мои заявки")
     Scaffold(

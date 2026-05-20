@@ -30,6 +30,7 @@ fun ProfileScreen(
     onBackClick: () -> Unit = {},
     onEditClick: () -> Unit = {},
     onSwitchRoleClick: () -> Unit = {},
+    onLogoutClick: () -> Unit = {},
     onTabClick: (Int) -> Unit = {},
     currentTab: Int = 2,
 ) {
@@ -92,6 +93,13 @@ fun ProfileScreen(
                 label = "Переключить роль",
                 onClick = onSwitchRoleClick,
             )
+
+            ProfileActionRow(
+                icon = Icons.Outlined.Logout,
+                label = "Выйти из аккаунта",
+                onClick = onLogoutClick,
+            )
+
             Spacer(Modifier.height(20.dp))
             Column(
                 modifier = Modifier
@@ -172,6 +180,7 @@ private fun ProfileBottomBar(currentTab: Int, onTabClick: (Int) -> Unit) {
     val items = listOf(
         Icons.Outlined.Home to "Главная",
         Icons.Outlined.Description to "Заявки",
+        Icons.Outlined.BarChart to "Статистика",
         Icons.Outlined.Person to "Профиль",
     )
     Row(

@@ -37,6 +37,7 @@ private val overlapDays = setOf(20, 21, 22)
 
 @Composable
 fun HomeEmployerScreen(
+    initialTab: Int = 0,
     stats: EmployerStats = EmployerStats(),
     requests: List<VacationRequestUi> = emptyList(),
     team: List<TeamMemberUi>  = emptyList(),
@@ -50,7 +51,7 @@ fun HomeEmployerScreen(
     onTeamMore: (String) -> Unit = {},
     onTabNavClick: (Int) -> Unit = {},
 ) {
-    var selectedTab by remember { mutableIntStateOf(0) }
+    var selectedTab by remember { mutableIntStateOf(initialTab) }
     val tabs = listOf("Обзор", "Заявки (${requests.size})", "Команда")
     Scaffold(
         containerColor = Black,
