@@ -22,4 +22,8 @@ class TeamRepository(private val context: Context) {
     suspend fun getTeamInfo(): Result<TeamInfoResponse> = runCatching {
         api.getTeamInfo()
     }
+
+    suspend fun getTeamCalendar(): Result<List<TeamCalendarResponse>> = runCatching {
+        api.getTeamCalendar()
+    }
 }

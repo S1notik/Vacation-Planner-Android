@@ -158,24 +158,27 @@ fun AppNavigation() {
             val teamMembers by teamVm.teamMembers.collectAsState()
             var companyName by remember { mutableStateOf("") }
             var inviteCode by remember { mutableStateOf("") }
-
+            val calendarData by teamVm.calendarData.collectAsState()
             LaunchedEffect(Unit) {
                 companyName = TokenManager.getName(context) ?: ""
                 inviteCode = TokenManager.getInviteCode(context) ?: ""
-                vacationVm.loadTeamVacations()
                 teamVm.loadTeamMembers()
+                teamVm.loadCalendar(2026, 5)
             }
 
             HomeEmployerScreen(
                 stats = EmployerStats(
                     employeesCount = teamMembers.size,
                     pendingCount = teamVacations.count { it.isNew },
-                    approvedCount = teamVacations.count { !it.isNew && it.status == "APPROVED" },                    totalDays = teamMembers.size * 28
+                    approvedCount = teamVacations.count { !it.isNew && it.status == "APPROVED" },
+                    totalDays = teamMembers.size * 28
                 ),
                 requests = teamVacations.filter { it.isNew },
                 team = teamMembers,
                 companyName = companyName,
                 inviteCode = inviteCode,
+                calendarData = calendarData,
+                onMonthChanged = { year, month -> teamVm.loadCalendar(year, month) },
                 onCreateTeam = { name -> teamVm.createTeam(name) },
                 onApprove = { id -> vacationVm.approveVacation(id) },
                 onReject = { id -> vacationVm.rejectVacation(id) },
@@ -190,14 +193,17 @@ fun AppNavigation() {
 
         composable(Routes.HOME_EMPLOYEE) {
             val vacationVm: VacationViewModel = viewModel()
+            val teamVm: TeamViewModel = viewModel()
             val myVacations by vacationVm.myVacations.collectAsState()
             val balance by vacationVm.balance.collectAsState()
             var userName by remember { mutableStateOf("") }
+            val calendarData by teamVm.calendarData.collectAsState()
 
             LaunchedEffect(Unit) {
                 userName = TokenManager.getName(context) ?: ""
                 vacationVm.loadMyVacations()
                 vacationVm.loadBalance()
+                teamVm.loadCalendar(2026, 5)
             }
 
             HomeEmployeeScreen(
@@ -206,6 +212,8 @@ fun AppNavigation() {
                 userName = userName,
                 onCancelRequest = { id -> vacationVm.cancelVacation(id) },
                 onSubmitRequest = { start, end -> vacationVm.createVacation(start, end) },
+                calendarData = calendarData,
+                onMonthChanged = { year, month -> teamVm.loadCalendar(year, month) },
                 onTabNavClick = { tab ->
                     when (tab) {
                         1 -> navController.navigate(Routes.HOME_EMPLOYEE_REQUESTS)
@@ -328,14 +336,17 @@ fun AppNavigation() {
 
         composable(Routes.HOME_EMPLOYEE_REQUESTS) {
             val vacationVm: VacationViewModel = viewModel()
+            val teamVm: TeamViewModel = viewModel()
             val myVacations by vacationVm.myVacations.collectAsState()
             val balance by vacationVm.balance.collectAsState()
             var userName by remember { mutableStateOf("") }
+            val calendarData by teamVm.calendarData.collectAsState()
 
             LaunchedEffect(Unit) {
                 userName = TokenManager.getName(context) ?: ""
                 vacationVm.loadMyVacations()
                 vacationVm.loadBalance()
+                teamVm.loadCalendar(2026, 5)
             }
 
             HomeEmployeeScreen(
@@ -343,6 +354,8 @@ fun AppNavigation() {
                 stats = balance,
                 requests = myVacations,
                 userName = userName,
+                calendarData = calendarData,
+                onMonthChanged = { year, month -> teamVm.loadCalendar(year, month) },
                 onCancelRequest = { id -> vacationVm.cancelVacation(id) },
                 onSubmitRequest = { start, end -> vacationVm.createVacation(start, end) },
                 onTabNavClick = { tab ->

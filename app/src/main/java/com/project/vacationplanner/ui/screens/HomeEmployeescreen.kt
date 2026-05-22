@@ -45,6 +45,8 @@ fun HomeEmployeeScreen(
     onMoreClick: () -> Unit = {},
     onCancelRequest: (String) -> Unit = {},
     onSubmitRequest: (startDate: String, endDate: String) -> Unit = { _, _ -> },
+    calendarData: Map<Int, List<String>> = emptyMap(),
+    onMonthChanged: (year: Int, month: Int) -> Unit = { _, _ -> },
 ) {
     var selectedTab by remember { mutableIntStateOf(initialTab) }
     var showNewRequest  by remember { mutableStateOf(false) }
@@ -131,7 +133,7 @@ fun HomeEmployeeScreen(
             Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(DividerColor))
             Spacer(Modifier.height(12.dp))
             when (selectedTab) {
-                0 -> CalendarTab()
+                0 -> CalendarTab(calendarData = calendarData, onMonthChanged = onMonthChanged)
                 1 -> MyRequestsTab(requests = requests, onCancel = onCancelRequest)
             }
         }
@@ -149,7 +151,44 @@ fun HomeEmployeeScreen(
 
 
 @Composable
-private fun CalendarTab() {
+private fun CalendarTab(
+    calendarData: Map<Int, List<String>> = emptyMap(),
+    onMonthChanged: (year: Int, month: Int) -> Unit = { _, _ -> },
+) {
+    var selectedDay by remember { mutableStateOf<Int?>(null) }
+    var currentYear by remember { mutableIntStateOf(2026) }
+    var currentMonth by remember { mutableIntStateOf(5) }
+
+    val monthNames = listOf("Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
+        "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь")
+
+    val daysInMonth = when (currentMonth) {
+        1, 3, 5, 7, 8, 10, 12 -> 31
+        4, 6, 9, 11 -> 30
+        2 -> if (currentYear % 4 == 0) 29 else 28
+        else -> 30
+    }
+
+    if (selectedDay != null) {
+        val employees = calendarData[selectedDay] ?: emptyList()
+        DayVacationDialog(
+            day = selectedDay!!,
+            employees = employees,
+            onDismiss = { selectedDay = null }
+        )
+    }
+
+    val firstDayOfWeek = java.util.Calendar.getInstance().apply {
+        set(currentYear, currentMonth - 1, 1)
+    }.get(java.util.Calendar.DAY_OF_WEEK).let {
+        if (it == java.util.Calendar.SUNDAY) 6 else it - 2
+    }
+
+    val cells = buildList {
+        repeat(firstDayOfWeek) { add(null) }
+        for (d in 1..daysInMonth) add(d)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -179,11 +218,19 @@ private fun CalendarTab() {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    IconButton(onClick = {}, modifier = Modifier.size(32.dp)) {
+                    IconButton(onClick = {
+                        if (currentMonth == 1) { currentMonth = 12; currentYear-- }
+                        else currentMonth--
+                        onMonthChanged(currentYear, currentMonth)
+                    }, modifier = Modifier.size(32.dp)) {
                         Icon(Icons.Outlined.KeyboardArrowLeft, null, tint = WhiteSecondary, modifier = Modifier.size(20.dp))
                     }
-                    Text("Март 2026", style = MaterialTheme.typography.titleMedium)
-                    IconButton(onClick = {}, modifier = Modifier.size(32.dp)) {
+                    Text("${monthNames[currentMonth - 1]} $currentYear", style = MaterialTheme.typography.titleMedium)
+                    IconButton(onClick = {
+                        if (currentMonth == 12) { currentMonth = 1; currentYear++ }
+                        else currentMonth++
+                        onMonthChanged(currentYear, currentMonth)
+                    }, modifier = Modifier.size(32.dp)) {
                         Icon(Icons.Outlined.KeyboardArrowRight, null, tint = WhiteSecondary, modifier = Modifier.size(20.dp))
                     }
                 }
@@ -199,10 +246,6 @@ private fun CalendarTab() {
                     }
                 }
                 Spacer(Modifier.height(6.dp))
-                val cells = buildList {
-                    repeat(6) { add(null) }
-                    for (d in 1..31) add(d)
-                }
                 cells.chunked(7).forEach { week ->
                     Row(modifier = Modifier.fillMaxWidth()) {
                         week.forEach { day ->
@@ -211,22 +254,30 @@ private fun CalendarTab() {
                                 contentAlignment = Alignment.Center,
                             ) {
                                 if (day != null) {
-                                    val isBusy  = day in employeeBusyDays
-                                    val isToday = day == 31
+                                    val isBusy = calendarData.containsKey(day)
+                                    val count = calendarData[day]?.size ?: 0
                                     Box(
                                         modifier = Modifier
                                             .size(32.dp)
                                             .clip(RoundedCornerShape(8.dp))
-                                            .then(if (isToday) Modifier.border(1.dp, White, RoundedCornerShape(8.dp)) else Modifier)
-                                            .background(if (isBusy) CardDark else Color.Transparent),
+                                            .background(if (isBusy) CardDark else Color.Transparent)
+                                            .clickable { selectedDay = day },
                                         contentAlignment = Alignment.Center,
                                     ) {
-                                        Text(
-                                            text = day.toString(),
-                                            style = MaterialTheme.typography.bodySmall.copy(
-                                                color = if (isBusy) White else WhiteSecondary,
-                                            ),
-                                        )
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Text(
+                                                text = day.toString(),
+                                                style = MaterialTheme.typography.bodySmall.copy(
+                                                    color = if (isBusy) White else WhiteSecondary,
+                                                ),
+                                            )
+                                            if (count > 1) {
+                                                Text(
+                                                    text = "+${count - 1}",
+                                                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 9.sp, color = WhiteHint),
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -235,17 +286,12 @@ private fun CalendarTab() {
                     }
                 }
                 Spacer(Modifier.height(12.dp))
-                // Legend
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    LegendItem(bg = CardDark, border = null,  label = "Занято")
-                    LegendItem(bg = White,    border = null,  label = "Выбрано")
-                    LegendItem(bg = Color.Transparent, border = White, label = "Сегодня")
+                    LegendItem(bg = CardDark, border = null, label = "Занято")
                 }
             }
         }
         Spacer(Modifier.height(12.dp))
-
-        // Info card
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -260,7 +306,7 @@ private fun CalendarTab() {
             }
             Spacer(Modifier.height(10.dp))
             listOf(
-                "Оранжевые даты заняты другими сотрудниками",
+                "Занятые даты — коллеги в отпуске",
                 "Минимальная продолжительность — 7 дней",
                 "Заявки рассматриваются до 3 рабочих дней",
             ).forEach { tip ->
@@ -514,6 +560,62 @@ private fun EmployeeBottomBar(currentTab: Int, onTabClick: (Int) -> Unit) {
                         color = if (selected) White else WhiteHint,
                     ),
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DayVacationDialog(
+    day: Int,
+    employees: List<String>,
+    onDismiss: () -> Unit,
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(20.dp))
+                .background(CardDark)
+                .padding(24.dp),
+        ) {
+            Text("Отпуска $day числа", style = MaterialTheme.typography.titleLarge)
+            Spacer(Modifier.height(12.dp))
+            if (employees.isEmpty()) {
+                Text("Нет сотрудников в отпуске", style = MaterialTheme.typography.bodyMedium)
+            } else {
+                employees.forEach { name ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(CardDarker)
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(
+                            modifier = Modifier.size(36.dp).clip(CircleShape).background(Black),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                text = name.split(" ").take(2).mapNotNull { it.firstOrNull()?.uppercaseChar() }.joinToString(""),
+                                style = MaterialTheme.typography.bodyMedium.copy(color = WhiteSecondary)
+                            )
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Text(name, style = MaterialTheme.typography.bodyLarge)
+                    }
+                    Spacer(Modifier.height(8.dp))
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            Button(
+                onClick = onDismiss,
+                modifier = Modifier.fillMaxWidth().height(48.dp),
+                shape = RoundedCornerShape(24.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = White, contentColor = Black),
+            ) {
+                Text("Закрыть", style = MaterialTheme.typography.labelLarge)
             }
         }
     }

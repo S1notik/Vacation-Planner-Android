@@ -15,4 +15,7 @@ interface TeamApiService {
 
     @GET("api/teams/info")
     suspend fun getTeamInfo(): TeamInfoResponse
+
+    @GET("api/teams/calendar")
+    suspend fun getTeamCalendar(): List<TeamCalendarResponse>
 }

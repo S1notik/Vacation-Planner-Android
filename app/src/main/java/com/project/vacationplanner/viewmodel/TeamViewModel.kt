@@ -27,6 +27,9 @@ class TeamViewModel(application: Application) : AndroidViewModel(application) {
     private val _joinSuccess = MutableStateFlow(false)
     val joinSuccess: StateFlow<Boolean> = _joinSuccess.asStateFlow()
 
+    private val _calendarData = MutableStateFlow<Map<Int, List<String>>>(emptyMap())
+    val calendarData: StateFlow<Map<Int, List<String>>> = _calendarData.asStateFlow()
+
     fun loadTeamMembers() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -65,4 +68,46 @@ class TeamViewModel(application: Application) : AndroidViewModel(application) {
         usedDays = 0,
         totalDays = 28
     )
+
+
+    fun loadCalendar(year: Int, month: Int) {
+        viewModelScope.launch {
+            repo.getTeamCalendar().onSuccess { list ->
+                val map = mutableMapOf<Int, MutableList<String>>()
+                list.forEach { member ->
+                    member.vacations
+                        .filter { it.status == "APPROVED" }
+                        .forEach { period ->
+                            val start = period.startDate.split("-")
+                            val end = period.endDate.split("-")
+                            if (start.size == 3 && end.size == 3) {
+                                val startYear = start[0].toIntOrNull() ?: return@forEach
+                                val startMonth = start[1].toIntOrNull() ?: return@forEach
+                                val startDay = start[2].toIntOrNull() ?: return@forEach
+                                val endYear = end[0].toIntOrNull() ?: return@forEach
+                                val endMonth = end[1].toIntOrNull() ?: return@forEach
+                                val endDay = end[2].toIntOrNull() ?: return@forEach
+                                // Перебираем дни в текущем месяце
+                                for (day in 1..31) {
+                                    val inRange = when {
+                                        startYear == endYear && startMonth == endMonth ->
+                                            startYear == year && startMonth == month && day in startDay..endDay
+                                        startYear == year && startMonth == month ->
+                                            day >= startDay
+                                        endYear == year && endMonth == month ->
+                                            day <= endDay
+                                        else -> false
+                                    }
+                                    if (inRange) {
+                                        map.getOrPut(day) { mutableListOf() }.add(member.employeeName)
+                                    }
+                                }
+                            }
+                        }
+                }
+                _calendarData.value = map
+            }
+        }
+    }
+
 }

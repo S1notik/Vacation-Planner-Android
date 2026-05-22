@@ -52,7 +52,10 @@ fun HomeEmployerScreen(
     onTabNavClick: (Int) -> Unit = {},
     inviteCode: String = "",
     onCreateTeam: (String) -> Unit = {},
-) {
+    calendarData: Map<Int, List<String>> = emptyMap(),
+    onMonthChanged: (year: Int, month: Int) -> Unit = { _, _ -> },
+
+    ) {
     var selectedTab by remember { mutableIntStateOf(initialTab) }
     val tabs = listOf("Обзор", "Заявки (${requests.size})", "Команда")
     Scaffold(
@@ -124,8 +127,11 @@ fun HomeEmployerScreen(
             Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(DividerColor))
             Spacer(Modifier.height(12.dp))
             when (selectedTab) {
-                0 -> OverviewTab(activity = activity)
-                1 -> RequestsTab(requests = requests, onApprove = onApprove, onReject = onReject)
+                0 -> OverviewTab(
+                    activity = activity,
+                    calendarData = calendarData,
+                    onMonthChanged = onMonthChanged
+                )                1 -> RequestsTab(requests = requests, onApprove = onApprove, onReject = onReject)
                 2 -> TeamTab(team = team, inviteCode = inviteCode, onMore = onTeamMore,
                     onCreateTeam = onCreateTeam)
 
@@ -135,7 +141,45 @@ fun HomeEmployerScreen(
 }
 
 @Composable
-private fun OverviewTab(activity: List<RecentActivityUi>) {
+private fun OverviewTab(
+    activity: List<RecentActivityUi>,
+    calendarData: Map<Int, List<String>> = emptyMap(),
+    onMonthChanged: (year: Int, month: Int) -> Unit = { _, _ -> },
+) {
+    var selectedDay by remember { mutableStateOf<Int?>(null) }
+    var currentYear by remember { mutableIntStateOf(2026) }
+    var currentMonth by remember { mutableIntStateOf(5) }
+
+    val monthNames = listOf("Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
+        "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь")
+
+    val daysInMonth = when (currentMonth) {
+        1, 3, 5, 7, 8, 10, 12 -> 31
+        4, 6, 9, 11 -> 30
+        2 -> if (currentYear % 4 == 0) 29 else 28
+        else -> 30
+    }
+
+    if (selectedDay != null) {
+        val employees = calendarData[selectedDay] ?: emptyList()
+        DayVacationDialog(
+            day = selectedDay!!,
+            employees = employees,
+            onDismiss = { selectedDay = null }
+        )
+    }
+
+    val firstDayOfWeek = java.util.Calendar.getInstance().apply {
+        set(currentYear, currentMonth - 1, 1)
+    }.get(java.util.Calendar.DAY_OF_WEEK).let {
+        if (it == java.util.Calendar.SUNDAY) 6 else it - 2
+    }
+
+    val cells = buildList {
+        repeat(firstDayOfWeek) { add(null) }
+        for (d in 1..daysInMonth) add(d)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -165,11 +209,19 @@ private fun OverviewTab(activity: List<RecentActivityUi>) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    IconButton(onClick = {}, modifier = Modifier.size(32.dp)) {
+                    IconButton(onClick = {
+                        if (currentMonth == 1) { currentMonth = 12; currentYear-- }
+                        else currentMonth--
+                        onMonthChanged(currentYear, currentMonth)
+                    }, modifier = Modifier.size(32.dp)) {
                         Icon(Icons.Outlined.KeyboardArrowLeft, null, tint = WhiteSecondary, modifier = Modifier.size(20.dp))
                     }
-                    Text("Март 2026", style = MaterialTheme.typography.titleMedium)
-                    IconButton(onClick = {}, modifier = Modifier.size(32.dp)) {
+                    Text("${monthNames[currentMonth - 1]} $currentYear", style = MaterialTheme.typography.titleMedium)
+                    IconButton(onClick = {
+                        if (currentMonth == 12) { currentMonth = 1; currentYear++ }
+                        else currentMonth++
+                        onMonthChanged(currentYear, currentMonth)
+                    }, modifier = Modifier.size(32.dp)) {
                         Icon(Icons.Outlined.KeyboardArrowRight, null, tint = WhiteSecondary, modifier = Modifier.size(20.dp))
                     }
                 }
@@ -185,10 +237,6 @@ private fun OverviewTab(activity: List<RecentActivityUi>) {
                     }
                 }
                 Spacer(Modifier.height(6.dp))
-                val cells = buildList {
-                    repeat(6) { add(null) }
-                    for (d in 1..31) add(d)
-                }
                 cells.chunked(7).forEach { week ->
                     Row(modifier = Modifier.fillMaxWidth()) {
                         week.forEach { day ->
@@ -197,27 +245,26 @@ private fun OverviewTab(activity: List<RecentActivityUi>) {
                                 contentAlignment = Alignment.Center,
                             ) {
                                 if (day != null) {
-                                    val isBusy = day in busyDays
-                                    val isOverlap = day in overlapDays
-                                    val isToday = day == 12
+                                    val isBusy = calendarData.containsKey(day)
+                                    val count = calendarData[day]?.size ?: 0
                                     Box(
                                         modifier = Modifier
                                             .size(32.dp)
                                             .clip(RoundedCornerShape(8.dp))
-                                            .then(if (isToday) Modifier.border(1.dp, White, RoundedCornerShape(8.dp)) else Modifier)
-                                            .background(if (isBusy || isOverlap) CardDark else Color.Transparent),
+                                            .background(if (isBusy) CardDark else Color.Transparent)
+                                            .clickable { selectedDay = day },
                                         contentAlignment = Alignment.Center,
                                     ) {
                                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                             Text(
                                                 text = day.toString(),
                                                 style = MaterialTheme.typography.bodySmall.copy(
-                                                    color = if (isBusy || isOverlap) White else WhiteSecondary,
+                                                    color = if (isBusy) White else WhiteSecondary,
                                                 ),
                                             )
-                                            if (isOverlap) {
+                                            if (count > 1) {
                                                 Text(
-                                                    text = "+1",
+                                                    text = "+${count - 1}",
                                                     style = MaterialTheme.typography.bodySmall.copy(fontSize = 9.sp, color = WhiteHint),
                                                 )
                                             }
@@ -242,16 +289,6 @@ private fun OverviewTab(activity: List<RecentActivityUi>) {
                         Spacer(Modifier.width(6.dp))
                         Text("Занято", style = MaterialTheme.typography.bodySmall)
                     }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(16.dp)
-                                .clip(RoundedCornerShape(4.dp))
-                                .border(1.dp, White, RoundedCornerShape(4.dp)),
-                        )
-                        Spacer(Modifier.width(6.dp))
-                        Text("Сегодня", style = MaterialTheme.typography.bodySmall)
-                    }
                 }
             }
         }
@@ -265,9 +302,13 @@ private fun OverviewTab(activity: List<RecentActivityUi>) {
         ) {
             Text("Недавняя активность", style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(12.dp))
-            activity.forEach { item ->
-                ActivityRow(item = item)
-                if (item != activity.last()) Spacer(Modifier.height(8.dp))
+            if (activity.isEmpty()) {
+                Text("Нет активности", style = MaterialTheme.typography.bodyMedium)
+            } else {
+                activity.forEach { item ->
+                    ActivityRow(item = item)
+                    if (item != activity.last()) Spacer(Modifier.height(8.dp))
+                }
             }
         }
         Spacer(Modifier.height(16.dp))
@@ -664,6 +705,60 @@ private fun CreateTeamDialog(
         }
     }
 }
+
+@Composable
+private fun DayVacationDialog(
+    day: Int,
+    employees: List<String>,
+    onDismiss: () -> Unit,
+) {
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(20.dp))
+                .background(CardDark)
+                .padding(24.dp),
+        ) {
+            Text("Отпуска $day числа", style = MaterialTheme.typography.titleLarge)
+            Spacer(Modifier.height(12.dp))
+            if (employees.isEmpty()) {
+                Text("Нет сотрудников в отпуске", style = MaterialTheme.typography.bodyMedium)
+            } else {
+                employees.forEach { name ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(CardDarker)
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        InitialsAvatar(
+                            initials = name.split(" ").take(2)
+                                .mapNotNull { it.firstOrNull()?.uppercaseChar() }
+                                .joinToString(""),
+                            size = 36
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Text(name, style = MaterialTheme.typography.bodyLarge)
+                    }
+                    Spacer(Modifier.height(8.dp))
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            Button(
+                onClick = onDismiss,
+                modifier = Modifier.fillMaxWidth().height(48.dp),
+                shape = RoundedCornerShape(24.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = White, contentColor = Black),
+            ) {
+                Text("Закрыть", style = MaterialTheme.typography.labelLarge)
+            }
+        }
+    }
+}
+
 
 @Preview(showBackground = true, backgroundColor = 0xFF000000, showSystemUi = true)
 @Composable
