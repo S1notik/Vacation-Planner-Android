@@ -105,6 +105,7 @@ class TeamViewModel(application: Application) : AndroidViewModel(application) {
                             }
                         }
                 }
+                android.util.Log.d("Calendar", "Map: $map")
                 _calendarData.value = map
             }
         }

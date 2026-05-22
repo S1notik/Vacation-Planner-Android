@@ -162,6 +162,7 @@ fun AppNavigation() {
             LaunchedEffect(Unit) {
                 companyName = TokenManager.getName(context) ?: ""
                 inviteCode = TokenManager.getInviteCode(context) ?: ""
+                vacationVm.loadTeamVacations()
                 teamVm.loadTeamMembers()
                 teamVm.loadCalendar(2026, 5)
             }
@@ -174,6 +175,7 @@ fun AppNavigation() {
                     totalDays = teamMembers.size * 28
                 ),
                 requests = teamVacations.filter { it.isNew },
+                onSubmitRequest = { start, end -> vacationVm.createVacationAsEmployer(start, end) },
                 team = teamMembers,
                 companyName = companyName,
                 inviteCode = inviteCode,
@@ -320,6 +322,7 @@ fun AppNavigation() {
                     totalDays = teamMembers.size * 28
                 ),
                 requests = teamVacations.filter { it.isNew },
+                onSubmitRequest = { start, end -> vacationVm.createVacationAsEmployer(start, end) },
                 team = teamMembers,
                 inviteCode = inviteCode,
                 onCreateTeam = { name -> teamVm.createTeam(name) },
@@ -368,13 +371,18 @@ fun AppNavigation() {
 
         composable(Routes.CREATE_TEAM) {
             val teamVm: TeamViewModel = viewModel()
+            val teamMembers by teamVm.teamMembers.collectAsState()
 
-            CreateTeamScreen(
-                onCreateTeam = { name ->
-                    teamVm.createTeam(name)
+            LaunchedEffect(teamMembers) {
+                if (teamMembers.isNotEmpty() || TokenManager.getInviteCode(context) != null) {
                     navController.navigate(Routes.HOME_EMPLOYER) {
                         popUpTo(0) { inclusive = true }
                     }
+                }
+            }
+            CreateTeamScreen(
+                onCreateTeam = { name ->
+                    teamVm.createTeam(name)
                 }
             )
         }

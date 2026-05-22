@@ -119,5 +119,16 @@ class VacationViewModel(application: Application) : AndroidViewModel(application
         val parts = split("-")
         return if (parts.size == 3) "${parts[2]}.${parts[1]}.${parts[0]}" else this
     }
+
+    fun createVacationAsEmployer(startDate: String, endDate: String) {
+        viewModelScope.launch {
+            repo.createVacation(startDate, endDate)
+                .onSuccess { vacation ->
+                    repo.reviewVacation(vacation.id, "APPROVED")
+                    loadTeamVacations()
+                }
+                .onFailure { _error.value = it.message }
+        }
+    }
 }
 

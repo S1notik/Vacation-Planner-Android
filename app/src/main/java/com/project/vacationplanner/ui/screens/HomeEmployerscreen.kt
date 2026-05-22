@@ -54,10 +54,12 @@ fun HomeEmployerScreen(
     onCreateTeam: (String) -> Unit = {},
     calendarData: Map<Int, List<String>> = emptyMap(),
     onMonthChanged: (year: Int, month: Int) -> Unit = { _, _ -> },
-
+    onSubmitRequest: (startDate: String, endDate: String) -> Unit = { _, _ -> },
     ) {
     var selectedTab by remember { mutableIntStateOf(initialTab) }
     val tabs = listOf("Обзор", "Заявки (${requests.size})", "Команда")
+    var showNewRequest by remember { mutableStateOf(false) }
+
     Scaffold(
         containerColor = Black,
         topBar = {
@@ -67,6 +69,16 @@ fun HomeEmployerScreen(
                 onBellClick = onBellClick,
                 onMoreClick = onMoreClick,
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { showNewRequest = true },
+                containerColor = White,
+                contentColor = Black,
+                shape = CircleShape,
+            ) {
+                Icon(Icons.Outlined.Add, null)
+            }
         },
         bottomBar = { EmployerBottomBar(currentTab = 0, onTabClick = onTabNavClick) },
     ) { padding ->
@@ -136,6 +148,15 @@ fun HomeEmployerScreen(
                     onCreateTeam = onCreateTeam)
 
             }
+        }
+        if (showNewRequest) {
+            EmployerVacationDialog(
+                onDismiss = { showNewRequest = false },
+                onSubmit = { start, end ->
+                    onSubmitRequest(start, end)
+                    showNewRequest = false
+                }
+            )
         }
     }
 }
@@ -759,6 +780,94 @@ private fun DayVacationDialog(
     }
 }
 
+
+@Composable
+private fun EmployerVacationDialog(
+    onDismiss: () -> Unit,
+    onSubmit: (startDate: String, endDate: String) -> Unit,
+) {
+    var startDate by remember { mutableStateOf("") }
+    var endDate by remember { mutableStateOf("") }
+    val isReady = startDate.isNotBlank() && endDate.isNotBlank()
+
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(20.dp))
+                .background(CardDark)
+                .padding(24.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Мой отпуск", style = MaterialTheme.typography.titleLarge)
+                    Spacer(Modifier.height(4.dp))
+                    Text("Будет одобрен автоматически", style = MaterialTheme.typography.bodyMedium)
+                }
+                IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
+                    Icon(Icons.Outlined.Close, null, tint = WhiteHint, modifier = Modifier.size(18.dp))
+                }
+            }
+            Spacer(Modifier.height(20.dp))
+            Text("Дата начала", style = MaterialTheme.typography.bodyLarge.copy(color = WhiteSecondary))
+            Spacer(Modifier.height(6.dp))
+            OutlinedTextField(
+                value = startDate,
+                onValueChange = { startDate = it },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("дд.мм.гггг", style = MaterialTheme.typography.bodyLarge.copy(color = WhiteHint)) },
+                trailingIcon = { Icon(Icons.Outlined.CalendarMonth, null, tint = WhiteSecondary) },
+                singleLine = true,
+                shape = RoundedCornerShape(14.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = White,
+                    unfocusedBorderColor = DividerColor,
+                    focusedContainerColor = Black,
+                    unfocusedContainerColor = Black,
+                    focusedTextColor = White,
+                    unfocusedTextColor = White,
+                    cursorColor = White,
+                ),
+            )
+            Spacer(Modifier.height(14.dp))
+            Text("Дата окончания", style = MaterialTheme.typography.bodyLarge.copy(color = WhiteSecondary))
+            Spacer(Modifier.height(6.dp))
+            OutlinedTextField(
+                value = endDate,
+                onValueChange = { endDate = it },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("дд.мм.гггг", style = MaterialTheme.typography.bodyLarge.copy(color = WhiteHint)) },
+                trailingIcon = { Icon(Icons.Outlined.CalendarMonth, null, tint = WhiteSecondary) },
+                singleLine = true,
+                shape = RoundedCornerShape(14.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = White,
+                    unfocusedBorderColor = DividerColor,
+                    focusedContainerColor = Black,
+                    unfocusedContainerColor = Black,
+                    focusedTextColor = White,
+                    unfocusedTextColor = White,
+                    cursorColor = White,
+                ),
+            )
+            Spacer(Modifier.height(20.dp))
+            Button(
+                onClick = {
+                    val startConverted = startDate.split(".").reversed().joinToString("-")
+                    val endConverted = endDate.split(".").reversed().joinToString("-")
+                    onSubmit(startConverted, endConverted)
+                },
+                enabled = isReady,
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+                shape = RoundedCornerShape(26.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = White, contentColor = Black),
+                elevation = ButtonDefaults.buttonElevation(0.dp),
+            ) {
+                Text("Создать отпуск", style = MaterialTheme.typography.labelLarge)
+            }
+        }
+    }
+}
 
 @Preview(showBackground = true, backgroundColor = 0xFF000000, showSystemUi = true)
 @Composable
