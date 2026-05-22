@@ -645,7 +645,8 @@ private fun EmployerBottomBar(currentTab: Int, onTabClick: (Int) -> Unit) {
     val items = listOf(
         Icons.Outlined.Home to "Главная",
         Icons.Outlined.BarChart to "Статистика",
-        Icons.Outlined.People to "Профиль",
+        Icons.Outlined.CalendarMonth to "Дни",
+        Icons.Outlined.Person to "Профиль",
     )
     Row(
         modifier = Modifier

@@ -130,5 +130,19 @@ class VacationViewModel(application: Application) : AndroidViewModel(application
                 .onFailure { _error.value = it.message }
         }
     }
+
+    fun setTeamBalance(totalDays: Int) {
+        viewModelScope.launch {
+            repo.setTeamBalance(totalDays)
+                .onFailure { _error.value = it.message }
+        }
+    }
+
+    fun setMemberBalance(employeeId: String, totalDays: Int) {
+        viewModelScope.launch {
+            repo.setMemberBalance(employeeId, totalDays)
+                .onFailure { _error.value = it.message }
+        }
+    }
 }
 

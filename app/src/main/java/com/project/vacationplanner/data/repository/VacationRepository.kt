@@ -72,4 +72,12 @@ class VacationRepository(private val context: Context) {
     suspend fun cancelVacation(id: String): Result<VacationResponse> = runCatching {
         api.cancelVacation(id)
     }
+
+    suspend fun setTeamBalance(totalDays: Int): Result<Unit> = runCatching {
+        api.setTeamBalance(totalDays)
+    }
+
+    suspend fun setMemberBalance(employeeId: String, totalDays: Int): Result<Unit> = runCatching {
+        api.setMemberBalance(employeeId, totalDays)
+    }
 }

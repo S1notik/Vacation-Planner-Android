@@ -66,7 +66,7 @@ class TeamViewModel(application: Application) : AndroidViewModel(application) {
         name = name,
         position = if (role == "EMPLOYER") "Работодатель" else "Сотрудник",
         usedDays = 0,
-        totalDays = 28
+        totalDays = totalDays
     )
 
 

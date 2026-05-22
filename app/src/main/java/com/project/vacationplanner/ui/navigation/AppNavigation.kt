@@ -48,6 +48,8 @@ object Routes {
 
     const val ROLE_SELECTION_AUTO = "role_selection_auto"
 
+    const val VACATION_BALANCE = "vacation_balance"
+
 }
 
 @Composable
@@ -187,7 +189,8 @@ fun AppNavigation() {
                 onTabNavClick = { tab ->
                     when (tab) {
                         1 -> navController.navigate(Routes.STATISTICS)
-                        2 -> navController.navigate(Routes.PROFILE)
+                        2 -> navController.navigate(Routes.VACATION_BALANCE)
+                        3 -> navController.navigate(Routes.PROFILE)
                     }
                 }
             )
@@ -411,6 +414,31 @@ fun AppNavigation() {
                 CircularProgressIndicator(color = White)
             }
         }
+
+
+        composable(Routes.VACATION_BALANCE) {
+            val vacationVm: VacationViewModel = viewModel()
+            val teamVm: TeamViewModel = viewModel()
+            val teamMembers by teamVm.teamMembers.collectAsState()
+
+            LaunchedEffect(Unit) {
+                teamVm.loadTeamMembers()
+            }
+
+            VacationBalanceScreen(
+                team = teamMembers,
+                onBackClick = { navController.navigate(Routes.HOME_EMPLOYER) { popUpTo(0) { inclusive = true } } },
+                onSetTeamBalance = { days ->
+                    vacationVm.setTeamBalance(days)
+                    navController.navigate(Routes.VACATION_BALANCE) { popUpTo(Routes.VACATION_BALANCE) { inclusive = true } }
+                },
+                onSetMemberBalance = { id, days ->
+                    vacationVm.setMemberBalance(id, days)
+                    navController.navigate(Routes.VACATION_BALANCE) { popUpTo(Routes.VACATION_BALANCE) { inclusive = true } }
+                }
+            )
+        }
+
 
     }
 }

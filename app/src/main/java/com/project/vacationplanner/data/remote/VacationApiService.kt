@@ -24,4 +24,14 @@ interface VacationApiService {
 
     @DELETE("api/vacations/{id}")
     suspend fun cancelVacation(@Path("id") id: String): VacationResponse
+
+    @PUT("api/vacations/balance/team")
+    suspend fun setTeamBalance(@Query("totalDays") totalDays: Int)
+
+    @PUT("api/vacations/balance/{employeeId}")
+    suspend fun setMemberBalance(
+        @Path("employeeId") employeeId: String,
+        @Query("totalDays") totalDays: Int
+    )
+
 }
