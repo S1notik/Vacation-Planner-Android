@@ -22,17 +22,14 @@ import com.project.vacationplanner.ui.theme.*
 
 @Composable
 fun ProfileScreen(
-    name: String = "Алексей Петров",
-    position: String = "Senior Frontend Developer",
-    email: String = "aleksey.petrov@company.com",
-    phone: String = "+7 (999) 123-45-67",
-    department: String = "Разработка",
+    name: String = "",
+    position: String = "",
+    email: String = "",
+    role: String = "",
     onBackClick: () -> Unit = {},
     onEditClick: () -> Unit = {},
-    onSwitchRoleClick: () -> Unit = {},
     onLogoutClick: () -> Unit = {},
     onTabClick: (Int) -> Unit = {},
-    currentTab: Int = 2,
 ) {
     val initials = name.split(" ")
         .take(2)
@@ -56,7 +53,12 @@ fun ProfileScreen(
             }
         },
         bottomBar = {
-            ProfileBottomBar(currentTab = currentTab, onTabClick = onTabClick)
+            val profileTab = if (role == "EMPLOYER") 3 else 2
+            ProfileBottomBar(
+                currentTab = profileTab,
+                onTabClick = onTabClick,
+                isEmployer = role == "EMPLOYER"
+            )
         },
     ) { padding ->
         Column(
@@ -96,6 +98,7 @@ fun ProfileScreen(
             )
 
             Spacer(Modifier.height(20.dp))
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -104,7 +107,13 @@ fun ProfileScreen(
             ) {
                 ProfileInfoRow(label = "Email", value = email)
                 ProfileDivider()
-                ProfileInfoRow(label = "Роль", value = if (position == "EMPLOYER") "Работодатель" else "Сотрудник")
+                ProfileInfoRow(label = "Должность", value = position)
+                ProfileDivider()
+                ProfileInfoRow(label = "Роль", value = when (role) {
+                    "EMPLOYER" -> "Работодатель"
+                    "EMPLOYEE" -> "Сотрудник"
+                    else -> role
+                })
             }
             Spacer(Modifier.height(32.dp))
         }
@@ -167,13 +176,21 @@ private fun ProfileDivider() {
 }
 
 @Composable
-private fun ProfileBottomBar(currentTab: Int, onTabClick: (Int) -> Unit) {
-    val items = listOf(
-        Icons.Outlined.Home to "Главная",
-        Icons.Outlined.Description to "Заявки",
-        Icons.Outlined.BarChart to "Статистика",
-        Icons.Outlined.Person to "Профиль",
-    )
+private fun ProfileBottomBar(currentTab: Int, onTabClick: (Int) -> Unit, isEmployer: Boolean) {
+    val items = if (isEmployer) {
+        listOf(
+            Icons.Outlined.Home to "Главная",
+            Icons.Outlined.Description to "Заявки",
+            Icons.Outlined.BarChart to "Статистика",
+            Icons.Outlined.Person to "Профиль",
+        )
+    } else {
+        listOf(
+            Icons.Outlined.Home to "Главная",
+            Icons.Outlined.Description to "Заявки",
+            Icons.Outlined.Person to "Профиль",
+        )
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()

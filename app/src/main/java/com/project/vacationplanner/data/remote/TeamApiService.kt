@@ -12,4 +12,7 @@ interface TeamApiService {
 
     @GET("api/teams/members")
     suspend fun getTeamMembers(): List<TeamMemberResponse>
+
+    @GET("api/teams/info")
+    suspend fun getTeamInfo(): TeamInfoResponse
 }

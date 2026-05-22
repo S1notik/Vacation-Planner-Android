@@ -18,4 +18,8 @@ class TeamRepository(private val context: Context) {
     suspend fun getTeamMembers(): Result<List<TeamMemberResponse>> = runCatching {
         api.getTeamMembers()
     }
+
+    suspend fun getTeamInfo(): Result<TeamInfoResponse> = runCatching {
+        api.getTeamInfo()
+    }
 }

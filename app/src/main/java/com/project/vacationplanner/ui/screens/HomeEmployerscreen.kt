@@ -50,6 +50,8 @@ fun HomeEmployerScreen(
     onReject: (String) -> Unit = {},
     onTeamMore: (String) -> Unit = {},
     onTabNavClick: (Int) -> Unit = {},
+    inviteCode: String = "",
+    onCreateTeam: (String) -> Unit = {},
 ) {
     var selectedTab by remember { mutableIntStateOf(initialTab) }
     val tabs = listOf("Обзор", "Заявки (${requests.size})", "Команда")
@@ -124,7 +126,9 @@ fun HomeEmployerScreen(
             when (selectedTab) {
                 0 -> OverviewTab(activity = activity)
                 1 -> RequestsTab(requests = requests, onApprove = onApprove, onReject = onReject)
-                2 -> TeamTab(team = team, onMore = onTeamMore)
+                2 -> TeamTab(team = team, inviteCode = inviteCode, onMore = onTeamMore,
+                    onCreateTeam = onCreateTeam)
+
             }
         }
     }
@@ -358,47 +362,98 @@ private fun RequestCard(
                 }
             }
         }
-        Spacer(Modifier.height(14.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Button(
-                onClick = onApprove,
-                modifier = Modifier.weight(1f).height(44.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = ButtonWhite, contentColor = Black),
-                elevation = ButtonDefaults.buttonElevation(0.dp, 0.dp, 0.dp, 0.dp),
-            ) {
-                Icon(Icons.Outlined.CheckCircle, null, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(6.dp))
-                Text("Одобрить", style = MaterialTheme.typography.labelLarge)
-            }
-            OutlinedButton(
-                onClick = onReject,
-                modifier = Modifier.weight(1f).height(44.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = White),
-                border = ButtonDefaults.outlinedButtonBorder.copy(
-                    brush = androidx.compose.ui.graphics.SolidColor(DividerColor),
-                ),
-            ) {
-                Icon(Icons.Outlined.Close, null, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(6.dp))
-                Text("Отклонить", style = MaterialTheme.typography.labelLarge.copy(color = White))
+        if (request.isNew) {
+            Spacer(Modifier.height(14.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Button(
+                    onClick = onApprove,
+                    modifier = Modifier.weight(1f).height(44.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = ButtonWhite,
+                        contentColor = Black
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(0.dp, 0.dp, 0.dp, 0.dp),
+                ) {
+                    Icon(Icons.Outlined.CheckCircle, null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Одобрить", style = MaterialTheme.typography.labelLarge)
+                }
+                OutlinedButton(
+                    onClick = onReject,
+                    modifier = Modifier.weight(1f).height(44.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = White),
+                    border = ButtonDefaults.outlinedButtonBorder.copy(
+                        brush = androidx.compose.ui.graphics.SolidColor(DividerColor),
+                    ),
+                ) {
+                    Icon(Icons.Outlined.Close, null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        "Отклонить",
+                        style = MaterialTheme.typography.labelLarge.copy(color = White)
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun TeamTab(team: List<TeamMemberUi>, onMore: (String) -> Unit) {
+private fun TeamTab(
+    team: List<TeamMemberUi>,
+    inviteCode: String,
+    onMore: (String) -> Unit,
+    onCreateTeam: (String) -> Unit,
+) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    if (showDialog) {
+        CreateTeamDialog(
+            onDismiss = { showDialog = false },
+            onConfirm = { name ->
+                onCreateTeam(name)
+                showDialog = false
+            }
+        )
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
+        item {
+            if (inviteCode.isNotBlank() || team.isNotEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(CardDark)
+                        .padding(16.dp),
+                ) {
+                    Text("Инвайт-код команды", style = MaterialTheme.typography.titleMedium)
+                    Spacer(Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(CardDarker)
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(inviteCode, style = MaterialTheme.typography.titleMedium.copy(color = White))
+                        Icon(Icons.Outlined.ContentCopy, null, tint = WhiteSecondary, modifier = Modifier.size(20.dp))
+                    }
+                }
+            }
+        }
         items(team) { member ->
             TeamMemberCard(member = member, onMore = { onMore(member.id) })
         }
-        item { Spacer(Modifier.height(8.dp)) }
+        item { Spacer(Modifier.height(80.dp)) }
     }
 }
 
@@ -554,6 +609,57 @@ private fun EmployerBottomBar(currentTab: Int, onTabClick: (Int) -> Unit) {
                     text = label,
                     style = MaterialTheme.typography.bodySmall.copy(color = if (selected) White else WhiteHint),
                 )
+            }
+        }
+    }
+}
+
+
+@Composable
+private fun CreateTeamDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit,
+) {
+    var teamName by remember { mutableStateOf("") }
+
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(20.dp))
+                .background(CardDark)
+                .padding(24.dp),
+        ) {
+            Text("Новая команда", style = MaterialTheme.typography.titleLarge)
+            Spacer(Modifier.height(8.dp))
+            Text("Придумайте название для вашей команды", style = MaterialTheme.typography.bodyMedium)
+            Spacer(Modifier.height(20.dp))
+            OutlinedTextField(
+                value = teamName,
+                onValueChange = { teamName = it },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Например: IT-Отдел", style = MaterialTheme.typography.bodyLarge.copy(color = WhiteHint)) },
+                singleLine = true,
+                shape = RoundedCornerShape(14.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = White,
+                    unfocusedBorderColor = DividerColor,
+                    focusedContainerColor = Black,
+                    unfocusedContainerColor = Black,
+                    focusedTextColor = White,
+                    unfocusedTextColor = White,
+                    cursorColor = White,
+                ),
+            )
+            Spacer(Modifier.height(20.dp))
+            Button(
+                onClick = { if (teamName.isNotBlank()) onConfirm(teamName) },
+                enabled = teamName.isNotBlank(),
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+                shape = RoundedCornerShape(26.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = White, contentColor = Black),
+            ) {
+                Text("Создать команду", style = MaterialTheme.typography.labelLarge)
             }
         }
     }

@@ -416,7 +416,10 @@ private fun NewVacationDialog(
             )
             Spacer(Modifier.height(20.dp))
             Button(
-                onClick = { onSubmit(startDate, endDate) },
+                onClick = {
+                    val startConverted = startDate.split(".").reversed().joinToString("-")
+                    val endConverted = endDate.split(".").reversed().joinToString("-")
+                    onSubmit(startConverted, endConverted) },
                 enabled = isReady,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(26.dp),

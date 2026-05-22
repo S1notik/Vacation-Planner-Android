@@ -140,7 +140,7 @@ fun RegisterScreen(
 
         VpPrimaryButton(
             text = "Создать аккаунт",
-            onClick = { onRegisterClick(fullName, email, password, position, companyCode) },
+            onClick = { onRegisterClick(fullName.trim(), email.trim(), password.trim(), position.trim(), companyCode.trim()) },
             enabled = fullName.isNotBlank() && email.isNotBlank() && password.length >= 8,
         )
         Spacer(Modifier.height(32.dp))

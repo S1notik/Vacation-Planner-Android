@@ -99,10 +99,8 @@ class VacationViewModel(application: Application) : AndroidViewModel(application
 
     private fun VacationResponse.toMyRequestUi() = MyVacationRequestUi(
         id = id,
-        dateRange = "$startDate — $endDate",
-        workDays = daysCount,
-        createdDate = createdAt.take(10).replace("-", "."),
-        status = runCatching { VacationStatus.valueOf(status) }.getOrElse { VacationStatus.PENDING }
+        dateRange = "${startDate.formatDate()} — ${endDate.formatDate()}",        workDays = daysCount,
+        createdDate = createdAt.take(10).split("-").reversed().joinToString("."),        status = runCatching { VacationStatus.valueOf(status) }.getOrElse { VacationStatus.PENDING }
     )
 
     private fun VacationResponse.toRequestUi() = VacationRequestUi(
@@ -110,9 +108,16 @@ class VacationViewModel(application: Application) : AndroidViewModel(application
         initials = (employeeName ?: "").split(" ")
             .take(2).mapNotNull { it.firstOrNull()?.uppercaseChar() }.joinToString(""),
         employeeName = employeeName ?: "Сотрудник",
-        startDate = startDate,
-        endDate = endDate,
+        startDate = startDate.formatDate(),
+        endDate = endDate.formatDate(),
         workDays = daysCount,
-        isNew = status == "PENDING"
+        isNew = status == "PENDING",
+        status = status
     )
+
+    private fun String.formatDate(): String {
+        val parts = split("-")
+        return if (parts.size == 3) "${parts[2]}.${parts[1]}.${parts[0]}" else this
+    }
 }
+

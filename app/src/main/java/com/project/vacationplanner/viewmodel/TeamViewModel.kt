@@ -1,8 +1,10 @@
 package com.project.vacationplanner.viewmodel
 
 import android.app.Application
+import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.project.vacationplanner.data.TokenManager
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import com.project.vacationplanner.data.repository.TeamRepository
@@ -46,7 +48,10 @@ class TeamViewModel(application: Application) : AndroidViewModel(application) {
     fun createTeam(name: String) {
         viewModelScope.launch {
             repo.createTeam(name)
-                .onSuccess { loadTeamMembers() }
+                .onSuccess { response ->
+                    TokenManager.saveInviteCode(getApplication(), response.inviteCode)
+                    loadTeamMembers()
+                }
                 .onFailure { _error.value = it.message }
         }
     }

@@ -21,6 +21,8 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = AuthRepository(application)
 
     private val _uiState = MutableStateFlow<AuthUiState>(AuthUiState.Idle)
+
+    val pendingInviteCode = MutableStateFlow<String?>(null)
     val uiState: StateFlow<AuthUiState> = _uiState
 
     val userRole = MutableStateFlow<String?>(null)

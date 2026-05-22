@@ -10,13 +10,14 @@ data class EmployerStats(
 )
 
 data class VacationRequestUi(
-    val id: String  = "",
-    val employeeName: String  = "",
-    val initials: String  = "",
-    val startDate: String  = "",
-    val endDate: String  = "",
+    val id: String = "",
+    val employeeName: String = "",
+    val initials: String = "",
+    val startDate: String = "",
+    val endDate: String = "",
     val workDays: Int = 0,
     val isNew: Boolean = false,
+    val status: String = "",
 )
 
 data class TeamMemberUi(

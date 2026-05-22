@@ -19,21 +19,25 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
     fun load() {
         viewModelScope.launch {
             val userName = TokenManager.getName(getApplication()) ?: ""
-            vacationRepo.refreshTeamVacations().onSuccess { list ->
-                val pending = list.count { it.status == "PENDING" }
-                val approved = list.count { it.status == "APPROVED" }
-                val rejected = list.count { it.status == "REJECTED" }
-                val avg = if (list.isNotEmpty()) list.sumOf { it.daysCount } / list.size else 0
-                _state.value = StatisticsUiState(
-                    userName = userName,
-                    pendingCount = pending,
-                    approvedCount = approved,
-                    rejectedCount = rejected,
-                    avgVacationDays = avg,
-                    totalRequests = list.size,
-                    remainingDays = 0
-                )
-            }
+            vacationRepo.refreshTeamVacations()
+                .onSuccess { list ->
+                    val pending = list.count { it.status == "PENDING" }
+                    val approved = list.count { it.status == "APPROVED" }
+                    val rejected = list.count { it.status == "REJECTED" }
+                    val avg = if (list.isNotEmpty()) list.sumOf { it.daysCount } / list.size else 0
+                    _state.value = StatisticsUiState(
+                        userName = userName,
+                        pendingCount = pending,
+                        approvedCount = approved,
+                        rejectedCount = rejected,
+                        avgVacationDays = avg,
+                        totalRequests = list.size,
+                        remainingDays = 0
+                    )
+                }
+                .onFailure { error ->
+                    android.util.Log.e("StatisticsVM", "Error: ${error.message}")
+                }
         }
     }
 }

@@ -64,22 +64,7 @@ fun RoleSelectionScreen(
             ),
             onClick = { onSelectRole(false) },
         )
-        Spacer(Modifier.height(20.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(14.dp))
-                .background(CardDark)
-                .padding(16.dp),
-            verticalAlignment = Alignment.Top,
-        ) {
-            Text("💡", style = MaterialTheme.typography.bodyLarge)
-            Spacer(Modifier.width(8.dp))
-            Text(
-                text = "Совет: Вы можете переключаться между ролями в настройках приложения",
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
+
     }
 }
 

@@ -23,6 +23,8 @@ object TokenManager {
 
     private val USER_POSITION = stringPreferencesKey("user_position")
 
+    private val INVITE_CODE = stringPreferencesKey("invite_code")
+
 
     // Save tokens after login/register
     suspend fun saveTokens(
@@ -65,7 +67,14 @@ object TokenManager {
 
     // Clear tokens on logout
     suspend fun clearTokens(context: Context) {
-        context.dataStore.edit { it.clear() }
+        context.dataStore.edit { prefs ->
+            prefs.remove(ACCESS_TOKEN)
+            prefs.remove(REFRESH_TOKEN)
+            prefs.remove(USER_ROLE)
+            prefs.remove(USER_NAME)
+            prefs.remove(USER_EMAIL)
+            prefs.remove(USER_POSITION)
+        }
     }
 
     // Check if user is logged in
@@ -91,6 +100,14 @@ object TokenManager {
 
     suspend fun getPosition(context: Context): String? {
         return context.dataStore.data.map { it[USER_POSITION] }.first()
+    }
+
+    suspend fun saveInviteCode(context: Context, code: String) {
+        context.dataStore.edit { it[INVITE_CODE] = code }
+    }
+
+    suspend fun getInviteCode(context: Context): String? {
+        return context.dataStore.data.map { it[INVITE_CODE] }.first()
     }
 
 }
