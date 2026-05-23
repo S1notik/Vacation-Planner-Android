@@ -361,9 +361,10 @@ private fun MyRequestsTab(
 @Composable
 private fun MyRequestCard(request: MyVacationRequestUi, onCancel: () -> Unit) {
     val (statusLabel, statusColor) = when (request.status) {
-        VacationStatus.PENDING  -> "Ожидает" to Color(0xFFFF9800)
-        VacationStatus.APPROVED -> "Одобрено" to Color(0xFF4CAF50)
-        VacationStatus.REJECTED -> "Отклонено" to Color(0xFFF44336)
+        VacationStatus.PENDING   -> "Ожидает" to Color(0xFFFF9800)
+        VacationStatus.APPROVED  -> "Одобрено" to Color(0xFF4CAF50)
+        VacationStatus.REJECTED  -> "Отклонено" to Color(0xFFF44336)
+        VacationStatus.CANCELLED -> "Отменено" to Color(0xFF9E9E9E)
         else -> "Неизвестно" to Color.Gray
     }
     Column(
@@ -413,8 +414,6 @@ private fun MyRequestCard(request: MyVacationRequestUi, onCancel: () -> Unit) {
         }
     }
 }
-
-// ── Dialog: Новая заявка ──────────────────────────────────────────────────────
 
 @Composable
 private fun NewVacationDialog(
