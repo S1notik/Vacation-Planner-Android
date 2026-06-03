@@ -171,10 +171,10 @@ fun AppNavigation() {
 
             HomeEmployerScreen(
                 stats = EmployerStats(
-                    employeesCount = teamMembers.size,
+                    employeesCount = teamMembers.count { it.position != "Работодатель" },
                     pendingCount = teamVacations.count { it.isNew },
                     approvedCount = teamVacations.count { !it.isNew && it.status == "APPROVED" },
-                    totalDays = teamMembers.size * 28
+                    totalDays = teamMembers.firstOrNull { it.position == "Работодатель" }?.totalDays ?: 28
                 ),
                 requests = teamVacations.filter { it.isNew },
                 onSubmitRequest = { start, end -> vacationVm.createVacationAsEmployer(start, end) },
@@ -203,6 +203,7 @@ fun AppNavigation() {
             val balance by vacationVm.balance.collectAsState()
             var userName by remember { mutableStateOf("") }
             val calendarData by teamVm.calendarData.collectAsState()
+            val joinSuccess by teamVm.joinSuccess.collectAsState()
 
             LaunchedEffect(Unit) {
                 userName = TokenManager.getName(context) ?: ""
@@ -211,10 +212,19 @@ fun AppNavigation() {
                 teamVm.loadCalendar(2026, 5)
             }
 
+            LaunchedEffect(joinSuccess) {
+                if (joinSuccess) {
+                    vacationVm.loadBalance()
+                    vacationVm.loadMyVacations()
+                    teamVm.loadCalendar(2026, 5)
+                }
+            }
+
             HomeEmployeeScreen(
                 stats = balance,
                 requests = myVacations,
                 userName = userName,
+                onJoinTeam = { code -> teamVm.joinTeam(code) },
                 onCancelRequest = { id -> vacationVm.cancelVacation(id) },
                 onSubmitRequest = { start, end -> vacationVm.createVacation(start, end) },
                 calendarData = calendarData,
@@ -319,10 +329,10 @@ fun AppNavigation() {
             HomeEmployerScreen(
                 initialTab = 1,
                 stats = EmployerStats(
-                    employeesCount = teamMembers.size,
+                    employeesCount = teamMembers.count { it.position != "Работодатель" },
                     pendingCount = teamVacations.count { it.isNew },
-                    approvedCount = teamVacations.count { !it.isNew },
-                    totalDays = teamMembers.size * 28
+                    approvedCount = teamVacations.count { !it.isNew && it.status == "APPROVED" },
+                    totalDays = teamMembers.firstOrNull { it.position == "Работодатель" }?.totalDays ?: 28
                 ),
                 requests = teamVacations.filter { it.isNew },
                 onSubmitRequest = { start, end -> vacationVm.createVacationAsEmployer(start, end) },

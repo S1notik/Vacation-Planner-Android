@@ -65,7 +65,7 @@ class TeamViewModel(application: Application) : AndroidViewModel(application) {
             .mapNotNull { it.firstOrNull()?.uppercaseChar() }.joinToString(""),
         name = name,
         position = if (role == "EMPLOYER") "Работодатель" else "Сотрудник",
-        usedDays = 0,
+        usedDays = usedDays,
         totalDays = totalDays
     )
 

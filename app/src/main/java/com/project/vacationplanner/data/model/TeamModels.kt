@@ -29,6 +29,7 @@ data class TeamMemberResponse(
     val email: String,
     val role: String,
     val joinedAt: String,
-    val totalDays: Int = 28
+    val totalDays: Int = 28,
+    val usedDays: Int = 0
 
 )

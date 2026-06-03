@@ -47,7 +47,8 @@ fun HomeEmployeeScreen(
     onSubmitRequest: (startDate: String, endDate: String) -> Unit = { _, _ -> },
     calendarData: Map<Int, List<String>> = emptyMap(),
     onMonthChanged: (year: Int, month: Int) -> Unit = { _, _ -> },
-) {
+    onJoinTeam: (String) -> Unit = {},
+    ) {
     var selectedTab by remember { mutableIntStateOf(initialTab) }
     var showNewRequest  by remember { mutableStateOf(false) }
     val tabs = listOf("Календарь", "Мои заявки")
@@ -79,16 +80,25 @@ fun HomeEmployeeScreen(
             EmployeeBottomBar(currentTab = 0, onTabClick = onTabNavClick)
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showNewRequest = true },
-                containerColor = White,
-                contentColor = Black,
-                shape = CircleShape,
-            ) {
-                Icon(Icons.Outlined.Add, null)
+            if (stats.totalDays > 0) {
+                FloatingActionButton(
+                    onClick = { showNewRequest = true },
+                    containerColor = White,
+                    contentColor = Black,
+                    shape = CircleShape,
+                ) {
+                    Icon(Icons.Outlined.Add, null)
+                }
             }
         },
     ) { padding ->
+        if (stats.totalDays == 0) {
+            NoTeamContent(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                onJoinTeam = onJoinTeam,
+            )
+            return@Scaffold
+        }
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -615,6 +625,102 @@ private fun DayVacationDialog(
                 colors = ButtonDefaults.buttonColors(containerColor = White, contentColor = Black),
             ) {
                 Text("Закрыть", style = MaterialTheme.typography.labelLarge)
+            }
+        }
+    }
+}
+
+
+@Composable
+private fun NoTeamContent(
+    modifier: Modifier = Modifier,
+    onJoinTeam: (String) -> Unit,
+) {
+    var showJoin by remember { mutableStateOf(false) }
+    if (showJoin) {
+        JoinTeamDialog(
+            onDismiss = { showJoin = false },
+            onConfirm = { code ->
+                onJoinTeam(code)
+                showJoin = false
+            },
+        )
+    }
+    Column(
+        modifier = modifier.padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box(
+            modifier = Modifier.size(72.dp).clip(CircleShape).background(CardDark),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(Icons.Outlined.Groups, null, tint = WhiteSecondary, modifier = Modifier.size(34.dp))
+        }
+        Spacer(Modifier.height(16.dp))
+        Text("Вы пока не в команде", style = MaterialTheme.typography.titleLarge)
+        Spacer(Modifier.height(8.dp))
+        Text(
+            "Введите инвайт-код, который дал работодатель, чтобы вступить в команду и подавать заявки на отпуск.",
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(24.dp))
+        Button(
+            onClick = { showJoin = true },
+            modifier = Modifier.fillMaxWidth().height(52.dp),
+            shape = RoundedCornerShape(26.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = White, contentColor = Black),
+        ) {
+            Text("Вступить в команду", style = MaterialTheme.typography.labelLarge)
+        }
+    }
+}
+
+@Composable
+private fun JoinTeamDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit,
+) {
+    var code by remember { mutableStateOf("") }
+    Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(20.dp))
+                .background(CardDark)
+                .padding(24.dp),
+        ) {
+            Text("Вступить в команду", style = MaterialTheme.typography.titleLarge)
+            Spacer(Modifier.height(8.dp))
+            Text("Введите инвайт-код команды", style = MaterialTheme.typography.bodyMedium)
+            Spacer(Modifier.height(20.dp))
+            OutlinedTextField(
+                value = code,
+                onValueChange = { code = it },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Например: B0AD61D3", style = MaterialTheme.typography.bodyLarge.copy(color = WhiteHint)) },
+                singleLine = true,
+                shape = RoundedCornerShape(14.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = White,
+                    unfocusedBorderColor = DividerColor,
+                    focusedContainerColor = Black,
+                    unfocusedContainerColor = Black,
+                    focusedTextColor = White,
+                    unfocusedTextColor = White,
+                    cursorColor = White,
+                ),
+            )
+            Spacer(Modifier.height(20.dp))
+            Button(
+                onClick = { if (code.isNotBlank()) onConfirm(code.trim().uppercase()) },
+                enabled = code.isNotBlank(),
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+                shape = RoundedCornerShape(26.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = White, contentColor = Black),
+            ) {
+                Text("Вступить", style = MaterialTheme.typography.labelLarge)
             }
         }
     }

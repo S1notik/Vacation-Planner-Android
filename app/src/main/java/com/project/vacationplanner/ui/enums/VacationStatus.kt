@@ -1,5 +1,5 @@
 package com.project.vacationplanner.ui.enums
 
-//enum class VacationStatus {
-//    PENDING, APPROVED, REJECTED, CANCELLED
-//}
+enum class VacationStatus {
+    PENDING, APPROVED, REJECTED, CANCELLED
+}
