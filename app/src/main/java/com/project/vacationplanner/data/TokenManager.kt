@@ -74,6 +74,7 @@ object TokenManager {
             prefs.remove(USER_NAME)
             prefs.remove(USER_EMAIL)
             prefs.remove(USER_POSITION)
+            prefs.remove(INVITE_CODE)
         }
     }
 
