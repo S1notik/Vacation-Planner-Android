@@ -62,7 +62,7 @@ fun RegisterScreen(
 
         Spacer(Modifier.height(20.dp))
 
-        Text("VacationPro", style = MaterialTheme.typography.headlineLarge)
+        Text("Планировщик", style = MaterialTheme.typography.headlineLarge)
         Spacer(Modifier.height(6.dp))
         Text(
             text = "Планирование отпусков для команды",
