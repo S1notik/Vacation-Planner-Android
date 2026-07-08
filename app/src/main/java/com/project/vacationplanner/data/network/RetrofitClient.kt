@@ -5,6 +5,7 @@ import com.project.vacationplanner.data.TokenManager
 import com.project.vacationplanner.data.remote.AuthApiService
 import com.project.vacationplanner.data.remote.NotificationApiService
 import com.project.vacationplanner.data.remote.TeamApiService
+import com.project.vacationplanner.data.remote.UserApiService
 import com.project.vacationplanner.data.remote.VacationApiService
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
@@ -59,5 +60,8 @@ object RetrofitClient {
 
     fun notificationService(context: Context): NotificationApiService =
         getRetrofit(context).create(NotificationApiService::class.java)
+
+    fun userService(context: Context): UserApiService =
+        getRetrofit(context).create(UserApiService::class.java)
 }
 

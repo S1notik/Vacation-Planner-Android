@@ -4,7 +4,8 @@ data class RegisterRequest(
     val email: String,
     val password: String,
     val name: String,
-    val role: String
+    val role: String,
+    val jobTitle: String? = null
 )
 
 data class LoginRequest(

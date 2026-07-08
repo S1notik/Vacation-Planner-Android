@@ -33,10 +33,11 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun register(email: String, password: String, name: String, role: String) {
+    fun register(email: String, password: String, name: String, role: String,
+                 jobTitle: String? = null) {
         viewModelScope.launch {
             _uiState.value = AuthUiState.Loading
-            repository.register(email, password, name, role)
+            repository.register(email, password, name, role, jobTitle)
                 .onSuccess { response ->
                     _uiState.value = AuthUiState.Success(response.role)
                 }
