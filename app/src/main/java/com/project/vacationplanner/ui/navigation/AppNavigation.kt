@@ -142,9 +142,8 @@ fun AppNavigation() {
                 onBackClick = { navController.popBackStack() },
                 onSelectRole = { isEmployer ->
                     val role = if (isEmployer) "EMPLOYER" else "EMPLOYEE"
-                    authViewModel.register(email, password, name, role)
+                    authViewModel.register(email, password, name, role, position)
                     scope.launch {
-                        TokenManager.savePosition(context, position)
                         if (companyCode.isNotBlank()) {
                             TeamRepository(context).joinTeam(companyCode)
                         }
@@ -239,23 +238,18 @@ fun AppNavigation() {
         }
 
         composable(Routes.PROFILE) {
-            var userName by remember { mutableStateOf("") }
-            var userEmail by remember { mutableStateOf("") }
-            var userPosition by remember { mutableStateOf("") }
-            var userRole2 by remember { mutableStateOf("") }
+            val userVm: UserViewModel = viewModel()
+            val profile by userVm.profile.collectAsState()
 
             LaunchedEffect(Unit) {
-                userName = TokenManager.getName(context) ?: ""
-                userEmail = TokenManager.getEmail(context) ?: ""
-                userPosition = TokenManager.getPosition(context) ?: ""
-                userRole2 = TokenManager.getRole(context) ?: ""
+                userVm.loadProfile()
             }
 
             ProfileScreen(
-                name = userName,
-                email = userEmail,
-                position = userPosition,
-                role = userRole2,
+                name = profile?.name ?: "",
+                email = profile?.email ?: "",
+                position = profile?.jobTitle ?: "",
+                role = profile?.role ?: "",
                 onBackClick = { navController.popBackStack() },
                 onLogoutClick = {
                     authViewModel.logout()
@@ -264,15 +258,15 @@ fun AppNavigation() {
                 onTabClick = { tab ->
                     when (tab) {
                         0 -> {
-                            val dest = if (userRole2 == "EMPLOYER") Routes.HOME_EMPLOYER else Routes.HOME_EMPLOYEE
+                            val dest = if (profile?.role == "EMPLOYER") Routes.HOME_EMPLOYER else Routes.HOME_EMPLOYEE
                             navController.navigate(dest) { popUpTo(0) { inclusive = true } }
                         }
                         1 -> {
-                            val dest = if (userRole2 == "EMPLOYER") Routes.HOME_EMPLOYER_REQUESTS else Routes.HOME_EMPLOYEE_REQUESTS
+                            val dest = if (profile?.role == "EMPLOYER") Routes.HOME_EMPLOYER_REQUESTS else Routes.HOME_EMPLOYEE_REQUESTS
                             navController.navigate(dest) { popUpTo(0) { inclusive = true } }
                         }
                         2 -> {
-                            if (userRole2 == "EMPLOYER") {
+                            if (profile?.role == "EMPLOYER") {
                                 navController.navigate(Routes.STATISTICS) { popUpTo(0) { inclusive = true } }
                             }
                         }
@@ -413,8 +407,7 @@ fun AppNavigation() {
 
             LaunchedEffect(Unit) {
                 authViewModel.pendingInviteCode.value = companyCode
-                authViewModel.register(email, password, name, "EMPLOYEE")
-                TokenManager.savePosition(context, position)
+                authViewModel.register(email, password, name, "EMPLOYEE", position)
             }
 
             Box(

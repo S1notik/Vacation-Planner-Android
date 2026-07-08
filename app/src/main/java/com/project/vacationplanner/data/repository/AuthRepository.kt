@@ -16,10 +16,11 @@ class AuthRepository(private val context: Context) {
         email: String,
         password: String,
         name: String,
-        role: String
+        role: String,
+        jobTitle: String? = null
     ): Result<AuthResponse> = runCatching {
         clearLocalData()
-        val response = api.register(RegisterRequest(email, password, name, role))
+        val response = api.register(RegisterRequest(email, password, name, role, jobTitle))
         TokenManager.saveTokens(
             context, response.accessToken, response.refreshToken, response.role, name, email
         )
